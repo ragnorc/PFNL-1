@@ -34,7 +34,7 @@ static class NumAcceptor extends Acceptor implements DFA {
 
     int next (int state, char c) {
 	switch (state) {
-	case 0: if (CharTypes.isDigit(c)) return 1 ; else if (CharTypes.isDigit(c) && c !=0) return 2 ; else return 3;
+	case 0: if (c == '0') return 1; else if (CharTypes.isDigit(c) && c != '0') return 2 ; else return 3;
     case 1: return 3 ;
     case 2: if (CharTypes.isDigit(c)) return 2; else return 3;
 	default: return 3 ;
