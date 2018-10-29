@@ -23,8 +23,50 @@ class MH_Typechecker {
     static MH_TYPE computeType (MH_EXP exp, TYPE_ENV env) 
 	throws TypeError, UnknownVariable {
 
-        // add code here
+		if (exp.isBOOLEAN()) {
+			return BoolType;
+		}
+		else if (exp.isNUM()) {
+			return IntegerType;
+		 } 
+		else if (exp.isVAR()) {
+			return env.typeOf(exp.value());
+		 } 
+		else if (exp.isINFIX()) {
+			if(computeType(exp.first(), env).isInteger() && computeType(exp.second(), env).isInteger())	{
+				if(exp.infixOp().equals("+") || exp.infixOp().equals("-")) return IntegerType;
+		        else if (exp.infixOp().equals("==") || exp.infixOp().equals("<=")) return BoolType;
+				 }
+				 else {
+					throw new TypeError ("Operation is only possible on Integers.") ;
+				  }
+			  }
+		else if (exp.isAPP() && computeType(exp.first(),env).isFun()) {
+			// first is the function , second is the parameter
+			if(computeType(exp.first(),env).left().equals(computeType(exp.second(), env))){
+				return computeType(exp.first(), env).right(); //Check
+				 }
+				 else {
+					throw new TypeError ("Argument type not matched.") ;
+				  }
+			  
+				}
+		else if (exp.isIF()) {
+			
+			if (computeType(exp.first(),env).isBool()) {
+			  if (computeType(exp.second(),env).equals(computeType(exp.third(), env))) return computeType(exp.second(),env); else throw new TypeError ("Types of then and else should match.") ;
+			}
+			else {
+			throw new TypeError ("If should be followed by a boolean expression.") ;
 
+			}
+
+
+		}
+
+		 
+		 //return BoolType;
+		 return null; //Check this
     }
 
 

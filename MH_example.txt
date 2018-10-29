@@ -12,4 +12,4 @@ times m n = if 0 <= n then if n <= 0 then 0 else m + times m (n-1)
                       else times m (n+1) - m ;
 
 twice :: (Integer -> Integer) -> Integer -> Integer ;
-twice f n = f (f n) ;
+twice f n = 5 + 6 ;
