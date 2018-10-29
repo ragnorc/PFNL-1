@@ -20,7 +20,7 @@ class MH_Typechecker {
     static MH_TYPE IntegerType = MH_Type_Impl.IntegerType ;
     static MH_TYPE BoolType = MH_Type_Impl.BoolType ;
 
-    static MH_TYPE computeType (MH_EXP exp, TYPE_ENV env) 
+    static MH_TYPE computeType (MH_EXP exp, TYPE_ENV env)
 	throws TypeError, UnknownVariable {
 
 		if (exp.isBOOLEAN()) {
@@ -28,10 +28,10 @@ class MH_Typechecker {
 		}
 		else if (exp.isNUM()) {
 			return IntegerType;
-		 } 
+		 }
 		else if (exp.isVAR()) {
 			return env.typeOf(exp.value());
-		 } 
+		 }
 		else if (exp.isINFIX()) {
 			if(computeType(exp.first(), env).isInteger() && computeType(exp.second(), env).isInteger())	{
 				if(exp.infixOp().equals("+") || exp.infixOp().equals("-")) return IntegerType;
@@ -43,16 +43,23 @@ class MH_Typechecker {
 			  }
 		else if (exp.isAPP() && computeType(exp.first(),env).isFun()) {
 			// first is the function , second is the parameter
-			if(computeType(exp.first(),env).left().equals(computeType(exp.second(), env))){
-				return computeType(exp.first(), env).right(); //Check
-				 }
-				 else {
-					throw new TypeError ("Argument type not matched.") ;
-				  }
-			  
+
+      if(computeType(exp.first(),env).isFun()){
+        if(computeType(exp.first(),env).left().equals(computeType(exp.second(), env))){
+  				return computeType(exp.first(), env).right(); //Check
+  				 }
+  				 else {
+  					throw new TypeError ("Argument type of function not matched.") ;
+  				  }
+      }
+      else {
+       throw new TypeError ("First part should be a function.") ;
+       }
+
+
 				}
 		else if (exp.isIF()) {
-			
+
 			if (computeType(exp.first(),env).isBool()) {
 			  if (computeType(exp.second(),env).equals(computeType(exp.third(), env))) return computeType(exp.second(),env); else throw new TypeError ("Types of then and else should match.") ;
 			}
@@ -64,9 +71,10 @@ class MH_Typechecker {
 
 		}
 
-		 
+
 		 //return BoolType;
-		 return null; //Check this
+     throw new TypeError ("Type undefined.") ;
+		 //return null; //Check this
     }
 
 
@@ -94,7 +102,7 @@ class MH_Typechecker {
 	    // this.env = (TreeMap<String,MH_TYPE>)given.env.clone() ;
 	}
 
-	// Constructor for building a type env from the type decls 
+	// Constructor for building a type env from the type decls
 	// appearing in a program
 	MH_Type_Env (TREE prog) throws DuplicatedVariable {
 	    this.env = new TreeMap<String,MH_TYPE>() ;
@@ -102,9 +110,9 @@ class MH_Typechecker {
 	    while (prog1.getRhs() != MH_Parser.epsilon) {
 		TREE typeDecl = prog1.getChildren()[0].getChildren()[0] ;
 		String var = typeDecl.getChildren()[0].getValue() ;
-		MH_TYPE theType = MH_Type_Impl.convertType 
+		MH_TYPE theType = MH_Type_Impl.convertType
 		    (typeDecl.getChildren()[2]);
-		if (env.containsKey(var)) 
+		if (env.containsKey(var))
 		    throw new DuplicatedVariable(var) ;
 		else env.put(var,theType) ;
 		prog1 = prog1.getChildren()[1] ;
@@ -114,7 +122,7 @@ class MH_Typechecker {
 
 	// Augmenting a type env with a list of function arguments.
 	// Takes the type of the function, returns the result type.
-	MH_TYPE addArgBindings (TREE args, MH_TYPE theType) 
+	MH_TYPE addArgBindings (TREE args, MH_TYPE theType)
 	    throws DuplicatedVariable, TypeError {
 	    TREE args1=args ;
 	    MH_TYPE theType1 = theType ;
@@ -134,14 +142,14 @@ class MH_Typechecker {
 	}
     }
 
-    static MH_Type_Env compileTypeEnv (TREE prog) 
+    static MH_Type_Env compileTypeEnv (TREE prog)
 	throws DuplicatedVariable{
 	return new MH_Type_Env (prog) ;
     }
 
     // Building a closure (using lambda) from argument list and body
     static MH_EXP buildClosure (TREE args, MH_EXP exp) {
-	if (args.getRhs() == MH_Parser.epsilon) 
+	if (args.getRhs() == MH_Parser.epsilon)
 	    return exp ;
 	else {
 	    MH_EXP exp1 = buildClosure (args.getChildren()[1], exp) ;
@@ -158,16 +166,16 @@ class MH_Typechecker {
 	}
     }
 
-    static Named_MH_EXP typecheckDecl (TREE decl, MH_Type_Env env) 
+    static Named_MH_EXP typecheckDecl (TREE decl, MH_Type_Env env)
 	throws TypeError, UnknownVariable, DuplicatedVariable,
 	       NameMismatchError {
-    // typechecks the given decl against the env, 
+    // typechecks the given decl against the env,
     // and returns a name-closure pair for the entity declared.
 	String theVar = decl.getChildren()[0].getChildren()[0].getValue();
 	String theVar1= decl.getChildren()[1].getChildren()[0].getValue();
-	if (!theVar.equals(theVar1)) 
-	    throw new NameMismatchError(theVar,theVar1) ; 
-	MH_TYPE theType = 
+	if (!theVar.equals(theVar1))
+	    throw new NameMismatchError(theVar,theVar1) ;
+	MH_TYPE theType =
 	    MH_Type_Impl.convertType (decl.getChildren()[0].getChildren()[2]) ;
 	MH_EXP theExp =
 	    MH_Exp_Impl.convertExp (decl.getChildren()[1].getChildren()[3]) ;
@@ -202,7 +210,7 @@ class MH_Typechecker {
     public static void main (String[] args) throws Exception {
 	Reader reader = new BufferedReader (new FileReader (args[0])) ;
 	// try {
-	    LEX_TOKEN_STREAM MH_Lexer = 
+	    LEX_TOKEN_STREAM MH_Lexer =
 		new CheckedSymbolLexer (new MH_Lexer (reader)) ;
 	    TREE prog = MH_Parser1.parseTokenStream (MH_Lexer) ;
 	    MH_Type_Env typeEnv = compileTypeEnv (prog) ;
